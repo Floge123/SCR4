@@ -3,7 +3,7 @@
 <div class="container" style="border:1px solid black;">
     <div class="row">
         <div class="col">
-            <h1><?php $htmlOut($data['product']->getName()); ?></h1>
+            <h2><?php $htmlOut($data['product']->getName()); ?></h2>
             <h6>Added By: <?php $htmlOut($data['product']->getCreator()); ?></h6>
             <h6>Manufacturer: <?php $htmlOut($data['product']->getManufacturer()); ?></h6>
         </div>

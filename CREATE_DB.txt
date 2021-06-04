@@ -5,9 +5,9 @@ SET time_zone = "+00:00";
 CREATE DATABASE IF NOT EXISTS `ProduktbewertungsPortal` DEFAULT CHARACTER SET latin1 COLLATE latin1_general_ci;
 USE `ProduktbewertungsPortal`;
 
-DROP TABLE IF EXISTS `users`;
-DROP TABLE IF EXISTS `products`;
 DROP TABLE IF EXISTS `ratings`;
+DROP TABLE IF EXISTS `products`;
+DROP TABLE IF EXISTS `users`;
 
 CREATE TABLE `users` (
   `username` varchar(255) NOT NULL,
@@ -20,8 +20,8 @@ CREATE TABLE `products` (
   `manufacturer` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `ratingCount` int(11) NOT NULL DEFAULT 0,
-  `averageRating` decimal(1, 1) NOT NULL DEFAULT 0.0,
-  `description` varchar(255)
+  `averageRating` decimal(5, 1) NOT NULL DEFAULT 0.0,
+  `description` varchar(3000)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ratings` (
@@ -30,7 +30,7 @@ CREATE TABLE `ratings` (
     `product` int(11) NOT NULL,
     `createDate` datetime NOT NULL,
     `grade` int(1) NOT NULL,
-    `comment` varchar(255)
+    `comment` varchar(2000)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 ALTER TABLE `users`
@@ -49,5 +49,11 @@ ALTER TABLE `ratings`
     ADD CONSTRAINT `rating_user_fk` FOREIGN KEY (`username`) REFERENCES `users` (`username`) ON DELETE CASCADE ON UPDATE CASCADE,
     ADD CONSTRAINT `rating_product_fk` FOREIGN KEY (`product`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+INSERT INTO `users` VALUES ('scr4', '$2y$10$0dhe3ngxlmzgZrX6MpSHkeoDQ.dOaceVTomUq/nQXV0vSkFojq.VG');
+
+INSERT INTO `products` (`name`, `manufacturer`, `username`, `description`) VALUES
+('G2 Guide (How to int 101)', 'G2 Esports', 'scr4', 'With this guide you will get from Gold 3 to Iron 2 in no time!'),
+('G2 Guide (How to not int 101)', 'G2 Esports', 'scr4', 'With this guide you will get from Iron 2 to Gold 3 in no time!');
 
 COMMIT;

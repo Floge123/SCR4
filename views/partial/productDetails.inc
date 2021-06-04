@@ -10,3 +10,12 @@
     <label for="description" class="form-label">Description</label>
     <textarea class="form-control shadow textarea" id="description" name="pd"><?php $htmlOut($data['description']); ?></textarea>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('textarea').on('keyup keypress', function() {
+            $(this).height(0);
+            $(this).height(this.scrollHeight);
+        });
+    });
+</script>

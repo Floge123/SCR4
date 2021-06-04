@@ -66,9 +66,10 @@ class User extends \Presentation\MVC\Controller {
         if ($password != $confpassword) {
             $errors[] = 'Passwords do not match.';
         }
-        if (!$this->registerCommand->execute(
-            $userName, $password, $confpassword
-        )) {
+
+        if (sizeof($errors) == 0 && !$this->registerCommand->execute(
+                $userName, $password, $confpassword
+            )) {
             $errors[] = 'User already exists.';
         }
 

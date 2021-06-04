@@ -91,6 +91,7 @@ class Rating extends \Presentation\MVC\Controller{
             return $this->view('detailView', [
                 'context' => $this->getParam(self::PARAM_CONTEXT),
                 'user' => $this->signedInUserQuery->execute(),
+                'product' => $product,
                 'ratings' => $this->ratingQuery->executeForProductID($productID),
                 'rating' => null,
                 'errors' => ['Insufficient Permission.']
