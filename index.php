@@ -14,11 +14,17 @@ $sp = new \ServiceProvider();
 $sp->register(\Application\ProductQuery::class);
 $sp->register(\Application\ProductSearchQuery::class);
 $sp->register(\Application\SignedInUserQuery::class);
+$sp->register(\Application\RatingQuery::class);
 
 $sp->register(\Application\SignInCommand::class);
 $sp->register(\Application\SignOutCommand::class);
 $sp->register(\Application\RegisterCommand::class);
 $sp->register(\Application\AddProductCommand::class);
+$sp->register(\Application\UpdateProductCommand::class);
+$sp->register(\Application\RemoveProductCommand::class);
+$sp->register(\Application\SubmitRatingCommand::class);
+$sp->register(\Application\UpdateRatingCommand::class);
+$sp->register(\Application\RemoveRatingCommand::class);
 
 
 //services
@@ -33,6 +39,7 @@ $sp->register(\Infrastructure\Repository::class, function() {
 }, isSingleton: true);
 $sp->register(\Application\Interfaces\ProductRepository::class, \Infrastructure\Repository::class);
 $sp->register(\Application\Interfaces\UserRepository::class, \Infrastructure\Repository::class);
+$sp->register(\Application\Interfaces\RatingRepository::class, \Infrastructure\Repository::class);
 
 // ----- PRESENTATION
 //MVC framework
@@ -44,6 +51,8 @@ $sp->register(\Presentation\MVC\MVC::class, function(){
 $sp->register(\Presentation\Controllers\Home::class);
 $sp->register(\Presentation\Controllers\Products::class);
 $sp->register(\Presentation\Controllers\User::class);
+$sp->register(\Presentation\Controllers\Details::class);
+$sp->register(\Presentation\Controllers\Rating::class);
 
 
 // === handle request

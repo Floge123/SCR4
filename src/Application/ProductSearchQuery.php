@@ -7,6 +7,19 @@ class ProductSearchQuery {
     ){
     }
 
+    public function executeIDFilter(string $id): ?\Application\ProductData {
+        $p = $this->productRepository->getProductFromID($id);
+        if ($p == null) {
+            return null;
+        }
+        return new \Application\ProductData(
+            $p->getID(), $p->getName(),
+            $p->getManufacturer(), $p->getCreator(),
+            $p->getRatingCount(), $p->getAverageRating(),
+            $p->getDescription()
+        );
+    }
+
     public function executeNameFilter(string $filter): array{
         $res = [];
         foreach($this->productRepository->getProductsForName($filter) as $p) {

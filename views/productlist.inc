@@ -9,11 +9,9 @@
     </div>
     <?php if(sizeof($data['products']) > 0) { ?>
 
-    <?php $render('partial/products', array(
-        'products' => $data['products'],
-        'context' => $data['context'])); ?>
+    <?php $render('partial/products', $data); ?>
 
     <?php } else { ?>
-        <p>No products in this category.</p>
+        <p>No products available.</p>
     <?php } ?>
 <?php $render('partial/footer', $data); ?>

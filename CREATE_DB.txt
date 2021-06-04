@@ -20,14 +20,15 @@ CREATE TABLE `products` (
   `manufacturer` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `ratingCount` int(11) NOT NULL DEFAULT 0,
-  `averageRating` decimal(1, 1) NOT NULL DEFAULT 0.0
+  `averageRating` decimal(1, 1) NOT NULL DEFAULT 0.0,
+  `description` varchar(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 CREATE TABLE `ratings` (
     `id` int(11) NOT NULL,
     `username` varchar(255) NOT NULL,
     `product` int(11) NOT NULL,
-    `createDate` DATE NOT NULL,
+    `createDate` datetime NOT NULL,
     `grade` int(1) NOT NULL,
     `comment` varchar(255)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;

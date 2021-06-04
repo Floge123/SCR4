@@ -2,7 +2,7 @@
 
 namespace Application;
 
-class AddProductCommand {
+class RemoveProductCommand {
     public function __construct(
         private Interfaces\ProductRepository $productRepository,
         private SignedInUserQuery $signedInUserQuery
@@ -10,10 +10,10 @@ class AddProductCommand {
     {
     }
 
-    public function execute(string $productName, string $manufacturer, string $description): bool {
+    public function execute(string $id): bool {
         $user = $this->signedInUserQuery->execute();
         if (!($user == null)) {
-            $this->productRepository->addProduct($productName, $manufacturer, $user->getUserName(), $description);
+            $this->productRepository->removeProduct($id);
             return true;
         }
         return false;

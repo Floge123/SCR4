@@ -23,12 +23,9 @@
 
 <?php if ($data['products'] !== null): ?>
     <?php if (sizeof($data['products']) > 0) {
-        $render('partial/products', array(
-            'products' => $data['products'],
-            'context' => $data['context']
-        ));
+        $render('partial/products', $data);
     } else { ?>
-        <p>No matching books found.</p>
+        <p>No matching products found.</p>
     <?php } ?>
 <?php endif; ?>
 

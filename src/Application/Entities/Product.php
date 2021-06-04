@@ -9,7 +9,8 @@ class Product {
         private string $manufacturer,
         private string $creator,
         private int $ratingCount,
-        private float $averageRating
+        private float $averageRating,
+        private string $description
     ){
     }
 
@@ -42,7 +43,8 @@ class Product {
         return $this->averageRating;
     }
 
-
-
-
+    public function getDescription(): string
+    {
+        return $this->description;
+    }
 }

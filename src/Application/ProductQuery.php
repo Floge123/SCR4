@@ -16,7 +16,8 @@ class ProductQuery {
             $res[] = new \Application\ProductData(
                 $p->getID(), $p->getName(),
                 $p->getManufacturer(), $p->getCreator(),
-                $p->getRatingCount(), $p->getAverageRating()
+                $p->getRatingCount(), $p->getAverageRating(),
+                $p->getDescription()
             );
         }
         return $res;

@@ -7,7 +7,8 @@ use Application\Entities\Product;
 class Repository
 implements
     \Application\Interfaces\ProductRepository,
-    \Application\Interfaces\UserRepository
+    \Application\Interfaces\UserRepository,
+    \Application\Interfaces\RatingRepository
 {
     private $server;
     private $userName;
@@ -55,7 +56,81 @@ implements
         return $statement;
     }
 
+    private function updateAverageRating(\mysqli $con, int $productID) {
+        $statAvg = $this->executeStatement(
+            $con,
+            'SELECT AVG(grade) FROM ratings WHERE product = ?',
+            function ($s) use ($productID) {
+                $s->bind_param('i', $productID);
+            }
+        );
+        $statAvg->bind_result($avgGrade);
+        if ($statAvg->fetch()) {
+            $avg = $avgGrade;
+        }
+        $statAvg->close();
+        $stat = $this->executeStatement(
+            $con,
+            'UPDATE products SET averageRating = ? WHERE id = ?',
+            function ($s) use ($avg, $productID) {
+                $s->bind_param('di', $avg, $productID);
+            }
+        );
+
+        $stat->close();
+    }
+
+    private function updateProductOnRemovedRating(\mysqli $con, int $productID) {
+        $stat = $this->executeStatement(
+            $con,
+            'UPDATE products SET ratingCount = ratingCount - 1 WHERE id = ?',
+            function ($s) use ($productID) {
+                $s->bind_param('i', $productID);
+            }
+        );
+        $stat->close();
+        $this->updateAverageRating($con, $productID);
+    }
+
+    private function updateProductOnAddedRating(\mysqli $con, int $productID) {
+        $stat = $this->executeStatement(
+            $con,
+            'UPDATE products SET ratingCount = ratingCount + 1 WHERE id = ?',
+            function ($s) use ($productID) {
+                $s->bind_param('i', $productID);
+            }
+        );
+        $stat->close();
+        $this->updateAverageRating($con, $productID);
+    }
+
     // === public methods ===
+    public function getProductFromID(string $id): ?\Application\Entities\Product
+    {
+        $intID = (int)$id;
+        $result = null;
+
+        $con = $this->getConnection();
+        $stat = $this->executeStatement(
+            $con,
+            'SELECT * FROM products WHERE id = ?',
+            function ($s) use ($intID) {
+                $s->bind_param('i', $intID);
+            }
+        );
+
+        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
+        if ($stat->fetch()) {
+            $result = new \Application\Entities\Product(
+                $id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description
+            );
+        }
+        $stat->close();
+        $con->close();
+
+        return $result;
+    }
+
     public function getProductsForName(string $name): array
     {
         $name = "%$name%";
@@ -69,9 +144,9 @@ implements
             }
         );
 
-        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         while ($stat->fetch()) {
-            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         }
         $stat->close();
         $con->close();
@@ -92,9 +167,9 @@ implements
             }
         );
 
-        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         while ($stat->fetch()) {
-            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         }
         $stat->close();
         $con->close();
@@ -116,16 +191,15 @@ implements
             }
         );
 
-        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         while ($stat->fetch()) {
-            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         }
         $stat->close();
         $con->close();
 
         return $products;
     }
-
 
     public function getAllProducts(): array
     {
@@ -139,9 +213,9 @@ implements
             }
         );
 
-        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+        $stat->bind_result($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         while ($stat->fetch()) {
-            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating);
+            $products[] = new Product($id, $name, $manufacturer, $creator, $ratingCount, $averageRating, $description);
         }
         $stat->close();
         $con->close();
@@ -149,17 +223,51 @@ implements
         return $products;
     }
 
-    public function addProduct(string $name, string $manufacturer, string $creator): void
+    public function addProduct(string $name, string $manufacturer, string $creator, $description): void
     {
         $con = $this->getConnection();
         $stat = $this->executeStatement(
             $con,
-            'INSERT INTO products (name, manufacturer, username)
-            VALUES (?, ?, ?)',
-            function ($s) use ($name, $manufacturer, $creator) {
-                $s->bind_param('sss', $name, $manufacturer, $creator);
+            'INSERT INTO products (name, manufacturer, username, description)
+            VALUES (?, ?, ?, ?)',
+            function ($s) use ($name, $manufacturer, $creator, $description) {
+                $s->bind_param('ssss', $name, $manufacturer, $creator, $description);
             }
         );
+        $stat->close();
+        $con->commit();
+        $con->close();
+    }
+
+    public function updateProduct(string $id, string $name, string $manufacturer, string $description): void
+    {
+        $con = $this->getConnection();
+        $intID = (int) $id;
+        $stat = $this->executeStatement(
+            $con,
+            'UPDATE products SET name = ?, manufacturer = ?, description = ? WHERE id = ?',
+            function ($s) use ($intID, $name, $manufacturer, $description) {
+                $s->bind_param('sssi', $name, $manufacturer, $description, $intID);
+            }
+        );
+
+        $stat->close();
+        $con->commit();
+        $con->close();
+    }
+
+    public function removeProduct(string $id): void
+    {
+        $con = $this->getConnection();
+        $intID = (int) $id;
+        $stat = $this->executeStatement(
+            $con,
+            'DELETE FROM products WHERE id = ?',
+            function ($s) use ($intID) {
+                $s->bind_param('i', $intID);
+            }
+        );
+
         $stat->close();
         $con->commit();
         $con->close();
@@ -223,4 +331,104 @@ implements
         $con->commit();
         $con->close();
     }
+
+    public function addRating(string $userName, int $productID, int $grade, string $comment): void {
+        $avg = 0.0;
+        $con = $this->getConnection();
+        $date = date('Y-m-d H:i:s');
+        $stat = $this->executeStatement(
+            $con,
+            'INSERT INTO ratings (username, product, createDate, grade, comment)
+            VALUES (?, ?, ?, ?, ?)',
+            function ($s) use ($userName, $productID, $date, $grade, $comment) {
+                $s->bind_param('sisis', $userName, $productID, $date, $grade, $comment);
+            }
+        );
+        $stat->close();
+
+        $this->updateProductOnAddedRating($con, $productID);
+
+        $con->commit();
+        $con->close();
+    }
+
+    public function getRatingsForProduct(int $productID): array
+    {
+        $con = $this->getConnection();
+        $ratings = [];
+        $stat = $this->executeStatement(
+            $con,
+            'SELECT * FROM ratings WHERE product = ? ORDER BY createDate DESC',
+            function ($s) use ($productID) {
+                $s->bind_param('i', $productID);
+            }
+        );
+
+        $stat->bind_result($id, $username, $productID, $date, $grade, $comment);
+        while ($stat->fetch()) {
+            $ratings[] = new \Application\Entities\Rating($id, $username, $productID, $date, $grade, $comment);
+        }
+        $stat->close();
+        $con->close();
+        return $ratings;
+    }
+
+    public function getRating(int $ratingID): ?\Application\Entities\Rating
+    {
+        $con = $this->getConnection();
+        $rating = null;
+        $stat = $this->executeStatement(
+            $con,
+            'SELECT * FROM ratings WHERE id = ?',
+            function ($s) use ($ratingID) {
+                $s->bind_param('i', $ratingID);
+            }
+        );
+
+        $stat->bind_result($id, $username, $productID, $date, $grade, $comment);
+        if ($stat->fetch()) {
+            $rating = new \Application\Entities\Rating($id, $username, $productID, $date, $grade, $comment);
+        }
+        $stat->close();
+        $con->close();
+        return $rating;
+    }
+
+    public function updateRating(int $ratingID, int $productID, string $comment, int $grade): void
+    {
+        $con = $this->getConnection();
+        $stat = $this->executeStatement(
+            $con,
+            'UPDATE ratings SET comment = ?, grade = ? WHERE id = ?',
+            function ($s) use ($ratingID, $comment, $grade) {
+                $s->bind_param('sii', $comment, $grade, $ratingID);
+            }
+        );
+        $stat->close();
+
+        $this->updateAverageRating($con, $productID);
+
+        $con->commit();
+        $con->close();
+    }
+
+    public function removeRating(int $ratingID, int $productID): void
+    {
+        $con = $this->getConnection();
+        $stat = $this->executeStatement(
+            $con,
+            'DELETE FROM ratings WHERE id = ?',
+            function ($s) use ($ratingID) {
+                $s->bind_param('i', $ratingID);
+            }
+        );
+        $stat->close();
+
+        $this->updateProductOnRemovedRating($con, $productID);
+
+        $con->commit();
+        $con->close();
+    }
+
+
 }

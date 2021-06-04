@@ -7,5 +7,8 @@ interface ProductRepository{
     public function getProductsForManufacturer(string $manufacturer): array;
     public function getProductsFromNameAndManufacturer(string $name, string $manufacturer): array;
     public function getAllProducts(): array;
-    public function addProduct(string $name, string $manufacturer, string $creator): void;
+    public function getProductFromID(string $id): ?\Application\Entities\Product;
+    public function addProduct(string $name, string $manufacturer, string $creator, string $description): void;
+    public function updateProduct(string $id, string $name, string $manufacturer, string $description): void;
+    public function removeProduct(string $id): void;
 }

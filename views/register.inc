@@ -2,7 +2,7 @@
 
 <h1>Register</h1>
 
-<?php $beginForm('User', 'Register', method: 'post'); ?>
+<?php $beginForm('User', 'Register', array('ctx' => $data['context']), method: 'post'); ?>
 <div class="mb-3">
     <label for="userName" class="form-label">User name</label>
     <input class="form-control" id="userName" name="un" value="<?php $htmlOut($data['userName']); ?>">
